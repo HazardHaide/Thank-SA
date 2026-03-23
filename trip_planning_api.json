@@ -1,0 +1,1005 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Trip Planning API",
+    "version": "1.0.0",
+    "description": "API для совместного планирования поездок"
+  },
+  "servers": [
+    {
+      "url": "https://api.traveltech.example.com"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Trips"
+    },
+    {
+      "name": "Trip Items"
+    },
+    {
+      "name": "Proposals"
+    },
+    {
+      "name": "Sync"
+    },
+    {
+      "name": "Conflicts"
+    }
+  ],
+  "paths": {
+    "/trips": {
+      "post": {
+        "tags": [
+          "Trips"
+        ],
+        "summary": "Создать поездку",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTripRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Поездка создана",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trip"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{tripId}": {
+      "get": {
+        "tags": [
+          "Trips"
+        ],
+        "summary": "Получить текущее состояние поездки",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TripId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Текущее состояние поездки",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{tripId}/items": {
+      "post": {
+        "tags": [
+          "Trip Items"
+        ],
+        "summary": "Добавить элемент поездки",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TripId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTripItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Элемент создан",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripItemResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Конфликт версии или бизнес-конфликт",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{tripId}/items/{itemId}": {
+      "patch": {
+        "tags": [
+          "Trip Items"
+        ],
+        "summary": "Изменить элемент поездки",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TripId"
+          },
+          {
+            "$ref": "#/components/parameters/ItemId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTripItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Элемент обновлён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripItemResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Конфликт",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Trip Items"
+        ],
+        "summary": "Удалить элемент поездки",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TripId"
+          },
+          {
+            "$ref": "#/components/parameters/ItemId"
+          },
+          {
+            "in": "header",
+            "name": "If-Match-Version",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Элемент удалён"
+          },
+          "409": {
+            "description": "Конфликт",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{tripId}/proposals": {
+      "post": {
+        "tags": [
+          "Proposals"
+        ],
+        "summary": "Создать предложение альтернативы",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TripId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProposalRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Предложение создано",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Proposals"
+        ],
+        "summary": "Получить все предложения по поездке",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TripId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Список предложений",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Proposal"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{tripId}/proposals/{proposalId}/accept": {
+      "post": {
+        "tags": [
+          "Proposals"
+        ],
+        "summary": "Принять предложение и сделать его частью текущего плана",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TripId"
+          },
+          {
+            "$ref": "#/components/parameters/ProposalId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Предложение принято",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{tripId}/sync": {
+      "post": {
+        "tags": [
+          "Sync"
+        ],
+        "summary": "Синхронизировать оффлайн-изменения",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TripId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Синхронизация выполнена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{tripId}/conflicts": {
+      "get": {
+        "tags": [
+          "Conflicts"
+        ],
+        "summary": "Получить список конфликтов поездки",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TripId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Список конфликтов",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Conflict"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{tripId}/conflicts/{conflictId}/resolve": {
+      "post": {
+        "tags": [
+          "Conflicts"
+        ],
+        "summary": "Разрешить конфликт merge",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TripId"
+          },
+          {
+            "$ref": "#/components/parameters/ConflictId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveConflictRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Конфликт разрешён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResolutionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "TripId": {
+        "in": "path",
+        "name": "tripId",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "ItemId": {
+        "in": "path",
+        "name": "itemId",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "ProposalId": {
+        "in": "path",
+        "name": "proposalId",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "ConflictId": {
+        "in": "path",
+        "name": "conflictId",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "schemas": {
+      "CreateTripRequest": {
+        "type": "object",
+        "required": [
+          "title",
+          "baseTimezone",
+          "participants"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "baseTimezone": {
+            "type": "string",
+            "example": "Europe/Amsterdam"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParticipantInput"
+            }
+          }
+        }
+      },
+      "ParticipantInput": {
+        "type": "object",
+        "required": [
+          "userId",
+          "role"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "OWNER",
+              "EDITOR",
+              "VIEWER"
+            ]
+          },
+          "timezone": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Trip": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "NEEDS_REVIEW",
+              "COMPLETED"
+            ]
+          },
+          "baseTimezone": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "TripDetails": {
+        "type": "object",
+        "properties": {
+          "trip": {
+            "$ref": "#/components/schemas/Trip"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TripParticipant"
+            }
+          },
+          "currentItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TripItem"
+            }
+          },
+          "proposals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Proposal"
+            }
+          },
+          "openConflicts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Conflict"
+            }
+          }
+        }
+      },
+      "TripParticipant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "OWNER",
+              "EDITOR",
+              "VIEWER"
+            ]
+          },
+          "timezone": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateTripItemRequest": {
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "startAtUtc",
+          "endAtUtc",
+          "sourceTimezone",
+          "baseVersion"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "FLIGHT",
+              "HOTEL",
+              "ACTIVITY",
+              "TRANSFER"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "startAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sourceTimezone": {
+            "type": "string"
+          },
+          "baseVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "UpdateTripItemRequest": {
+        "type": "object",
+        "required": [
+          "baseVersion"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "startAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sourceTimezone": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "PROPOSED",
+              "DELETED",
+              "CONFLICT"
+            ]
+          },
+          "baseVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "TripItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tripId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "FLIGHT",
+              "HOTEL",
+              "ACTIVITY",
+              "TRANSFER"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "PROPOSED",
+              "DELETED",
+              "CONFLICT"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "startAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sourceTimezone": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "TripItemResponse": {
+        "type": "object",
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/TripItem"
+          },
+          "tripVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CreateProposalRequest": {
+        "type": "object",
+        "required": [
+          "targetItemType",
+          "proposedItem",
+          "comment"
+        ],
+        "properties": {
+          "targetItemType": {
+            "type": "string",
+            "enum": [
+              "FLIGHT",
+              "HOTEL",
+              "ACTIVITY",
+              "TRANSFER"
+            ]
+          },
+          "proposedItem": {
+            "$ref": "#/components/schemas/CreateTripItemRequest"
+          },
+          "comment": {
+            "type": "string"
+          }
+        }
+      },
+      "Proposal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tripId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targetItemType": {
+            "type": "string",
+            "enum": [
+              "FLIGHT",
+              "HOTEL",
+              "ACTIVITY",
+              "TRANSFER"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "REJECTED",
+              "CONFLICT"
+            ]
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "proposedItem": {
+            "$ref": "#/components/schemas/TripItem"
+          }
+        }
+      },
+      "SyncRequest": {
+        "type": "object",
+        "required": [
+          "deviceId",
+          "events"
+        ],
+        "properties": {
+          "deviceId": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfflineEvent"
+            }
+          }
+        }
+      },
+      "OfflineEvent": {
+        "type": "object",
+        "required": [
+          "clientEventId",
+          "eventType",
+          "entityType",
+          "payload",
+          "baseVersion",
+          "eventTime"
+        ],
+        "properties": {
+          "clientEventId": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string",
+            "enum": [
+              "ITEM_ADDED",
+              "ITEM_UPDATED",
+              "ITEM_DELETED",
+              "PROPOSAL_CREATED"
+            ]
+          },
+          "entityType": {
+            "type": "string",
+            "enum": [
+              "TRIP_ITEM",
+              "PROPOSAL"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "baseVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "eventTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SyncResponse": {
+        "type": "object",
+        "properties": {
+          "appliedEvents": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rejectedEvents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RejectedEvent"
+            }
+          },
+          "createdConflicts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Conflict"
+            }
+          }
+        }
+      },
+      "RejectedEvent": {
+        "type": "object",
+        "properties": {
+          "clientEventId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "Conflict": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tripId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "VERSION_MISMATCH",
+              "CONCURRENT_UPDATE",
+              "DELETE_UPDATE_CONFLICT",
+              "ROUTE_INTEGRITY_CONFLICT",
+              "TIME_CONFLICT"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "RESOLVED",
+              "CANCELLED"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "affectedItemIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ConflictResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "conflict": {
+            "$ref": "#/components/schemas/Conflict"
+          }
+        }
+      },
+      "ResolveConflictRequest": {
+        "type": "object",
+        "required": [
+          "strategy"
+        ],
+        "properties": {
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "KEEP_CURRENT",
+              "APPLY_INCOMING",
+              "KEEP_BOTH_AS_PROPOSALS",
+              "RESTORE_DELETED",
+              "MANUAL_MERGE"
+            ]
+          },
+          "selectedPayload": {
+            "type": "object",
+            "additionalProperties": true,
+            "nullable": true
+          },
+          "comment": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ConflictResolutionResponse": {
+        "type": "object",
+        "properties": {
+          "conflictId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "RESOLVED"
+            ]
+          },
+          "tripVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tripState": {
+            "$ref": "#/components/schemas/TripDetails"
+          }
+        }
+      }
+    }
+  }
+}
